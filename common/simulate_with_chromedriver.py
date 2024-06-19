@@ -37,9 +37,9 @@ chrome_options.add_experimental_option("prefs", {
     "profile.default_content_setting_values.geolocation": 1  # 允许地理位置
 })
 
-# 设置浏览器无头模式，即不显示浏览器窗口
-chrome_options.add_argument("--headless")
-# 设置浏览器窗口大小，避免部分元素无法获取和点击
+# # 设置浏览器无头模式，即不显示浏览器窗口
+# chrome_options.add_argument("--headless")
+# # 设置浏览器窗口大小，避免部分元素无法获取和点击
 chrome_options.add_argument("--window-size=1920,1080")
 driver = webdriver.Chrome(options=chrome_options)
 
@@ -76,14 +76,15 @@ def login(netid, password):
 
     driver.get('https://ipahw.xjtu.edu.cn/pages/tabbar/index')
 
-    driver.implicitly_wait(5)
-    element = driver.find_element_by_css_selector('.w-360.h-90.u-flex.u-col-center.u-row-center').click()
+    element = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, '//uni-view[text()="统一身份认证"]')))
+    element = driver.find_element(By.XPATH, '//uni-view[text()="统一身份认证"]').click()
 
     if driver.current_url == "https://org.xjtu.edu.cn/openplatform/login.html":
         driver.implicitly_wait(0.5)
-        driver.find_element_by_class_name("username").send_keys(netid)
+        # driver.find_element(By.CLASS_NAME, "username").send_keys(netid)
+        driver.find_element(By.CLASS_NAME, "username").send_keys(netid)
         driver.implicitly_wait(0.5)
-        driver.find_element_by_class_name("pwd").send_keys(password)
+        driver.find_element(By.CLASS_NAME, "pwd").send_keys(password)
         driver.implicitly_wait(0.5)
         driver.find_element_by_id("account_login").click()
 
@@ -97,7 +98,7 @@ def go_to_my_activity():
 
     element = WebDriverWait(driver, 10).until(
         EC.presence_of_element_located((By.XPATH, '//uni-text/span[text()="我的活动"]')))
-    driver.find_element_by_xpath('//uni-text/span[text()="我的活动"]').click()
+    driver.find_element(By.XPATH, ('//uni-text/span[text()="我的活动"]')).click()
     time.sleep(3)
 
 
@@ -107,13 +108,13 @@ def sign_in():
     """
 
     element = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, '//uni-button[text()="签到"]')))
-    driver.find_elements_by_xpath('//uni-button[text()="签到"]')[1].click()
+    driver.find_elements(By.XPATH, ('//uni-button[text()="签到"]'))[1].click()
     # 这里不可以注释 等几秒才可以点击签到 签到成功
     time.sleep(3)
 
     element = WebDriverWait(driver, 10).until(
         EC.presence_of_element_located((By.XPATH, '//uni-button[text()="锻炼过程积分签到"]')))
-    driver.find_element_by_xpath('//uni-button[text()="锻炼过程积分签到"]').click()
+    driver.find_element(By.XPATH, ('//uni-button[text()="锻炼过程积分签到"]')).click()
 
     logging.info("sign in success")
 
@@ -124,12 +125,12 @@ def sign_out():
     :return:
     """
     element = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, '//uni-button[text()="签退"]')))
-    driver.find_elements_by_xpath('//uni-button[text()="签退"]')[1].click()
+    driver.find_elements(By.XPATH, ('//uni-button[text()="签退"]'))[1].click()
     time.sleep(3)
 
     element = WebDriverWait(driver, 10).until(
         EC.presence_of_element_located((By.XPATH, '//uni-button[text()="锻炼过程积分签退"]')))
-    driver.find_element_by_xpath('//uni-button[text()="锻炼过程积分签退"]').click()
+    driver.find_element(By.XPATH, ('//uni-button[text()="锻炼过程积分签退"]')).click()
     time.sleep(3)
     logging.info("sign out success")
 
@@ -149,7 +150,7 @@ def time_wait():
     time.sleep(rand_time * 60)
 
 
-def main(netid, password, latitude=34.123456, longitude=108.123456):
+def main(netid, password, latitude=34.257116, longitude=108.652905):
     """
     主函数
 
@@ -180,23 +181,23 @@ def main(netid, password, latitude=34.123456, longitude=108.123456):
 def validate():
     element = WebDriverWait(driver, 10).until(
         EC.presence_of_element_located((By.XPATH, '//uni-view[text()="查看详情"]')))
-    driver.find_elements_by_xpath('//uni-view[text()="查看详情"]')[1].click()
+    driver.find_elements(By.XPATH, ('//uni-view[text()="查看详情"]'))[1].click()
     element = WebDriverWait(driver, 10).until(
         EC.presence_of_element_located((By.XPATH, '//uni-text/span[text()="锻炼记录"]')))
-    driver.find_element_by_xpath('//uni-text/span[text()="锻炼记录"]').click()
+    driver.find_element(By.XPATH, ('//uni-text/span[text()="锻炼记录"]')).click()
 
     element = WebDriverWait(driver, 10).until(
         EC.presence_of_element_located((By.XPATH, '//uni-view[text()="序号"]')))
     # 找到第一条锻炼记录
-    score_element = driver.find_element_by_xpath(
+    score_element = driver.find_element(By.XPATH, (
         '//uni-view[contains(@class, "list_names") '
         'and text()="得分"]/following-sibling::uni-view'
-    )
+    ))
 
-    date_element = driver.find_elements_by_xpath(
+    date_element = driver.find_elements(By.XPATH, (
         '//uni-view[contains(@class, "list_names") '
         'and text()="签到时间"]/following-sibling::uni-view'
-    )[0]
+    ))[0]
 
     # 截图并保存为screenshot.png
     driver.save_screenshot('最新打卡详情截图.png')
