@@ -1,10 +1,31 @@
 import logging
 import time
+import os
 import random
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
+import json
+from mail import send_email
+
+
+# 读取配置文件，优先加载自定义的 myMail.json 文件
+if not os.path.exists('myMail.json'):
+    with open('mail.json', 'r') as f:
+        config = json.load(f)
+else:
+    with open('myMail.json', 'r') as f:
+        config = json.load(f)
+
+# 从配置文件中获取参数
+need_mail = config['need_mail']
+if need_mail:
+    smtp_server = config['smtp_server']
+    sender_email = config['sender_email']
+    sender_password = config['sender_password']
+    receiver_email = config['receiver_email']
+
 
 # 设置日志记录格式
 logging.basicConfig(filename='../physic_log.log', level=logging.INFO,
@@ -16,7 +37,9 @@ chrome_options.add_experimental_option("prefs", {
     "profile.default_content_setting_values.geolocation": 1  # 允许地理位置
 })
 
-chrome_options.add_argument("--headless")  # 无头模式
+# 设置浏览器无头模式，即不显示浏览器窗口
+chrome_options.add_argument("--headless")
+# 设置浏览器窗口大小，避免部分元素无法获取和点击
 chrome_options.add_argument("--window-size=1920,1080")
 driver = webdriver.Chrome(options=chrome_options)
 
@@ -67,10 +90,7 @@ def login(netid, password):
     logging.info("login success")
 
 
-def sign_in():
-    """
-    签到
-    """
+def go_to_my_activity():
 
     element = WebDriverWait(driver, 10, 0.5).until(EC.url_contains("ipahw.xjtu.edu.cn"))
     driver.get('https://ipahw.xjtu.edu.cn/pages/tabbar/index')
@@ -79,6 +99,12 @@ def sign_in():
         EC.presence_of_element_located((By.XPATH, '//uni-text/span[text()="我的活动"]')))
     driver.find_element_by_xpath('//uni-text/span[text()="我的活动"]').click()
     time.sleep(3)
+
+
+def sign_in():
+    """
+    签到
+    """
 
     element = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, '//uni-button[text()="签到"]')))
     driver.find_elements_by_xpath('//uni-button[text()="签到"]')[1].click()
@@ -114,16 +140,16 @@ def time_wait():
     """
 
     # debug 暂停10s，控制台输出倒计时
-    for i in range(5):
-        print(f"倒计时 {5 - i} 秒")
-        time.sleep(1)
+    # for i in range(5):
+    #     print(f"倒计时 {5 - i} 秒")
+    #     time.sleep(1)
 
     # 随机31-44min后签退
-    # rand_time = 31 + 13 * random.random()
-    # time.sleep(rand_time * 60)
+    rand_time = 31 + 13 * random.random()
+    time.sleep(rand_time * 60)
 
 
-def main(netid, password, latitude, longitude):
+def main(netid, password, latitude=34.123456, longitude=108.123456):
     """
     主函数
 
@@ -137,6 +163,8 @@ def main(netid, password, latitude, longitude):
 
     login(netid, password)
 
+    go_to_my_activity()
+
     sign_in()
 
     time_wait()
@@ -145,6 +173,7 @@ def main(netid, password, latitude, longitude):
 
     validate()
 
+    logging.info("browser closed")
     driver.quit()
 
 
@@ -164,17 +193,39 @@ def validate():
         'and text()="得分"]/following-sibling::uni-view'
     )
 
-    date_element = driver.find_element_by_xpath(
+    date_element = driver.find_elements_by_xpath(
         '//uni-view[contains(@class, "list_names") '
         'and text()="签到时间"]/following-sibling::uni-view'
-    )
-    print(date_element.text)
+    )[0]
 
-    # 检查"得分"元素的文本是否为"1"
-    if score_element.text == "1":
-        logging.info("日期：{} 打卡成功".format(time.strftime("%Y-%m-%d %H:%M:%S")))
+    # 截图并保存为screenshot.png
+    driver.save_screenshot('最新打卡详情截图.png')
+
+    # 检查"得分"元素的文本是否为"1" 且 格式化后的日期为今天
+    if score_element.text == "1" and date_element.text.split(" ")[0] == time.strftime("%Y-%m-%d"):
+        logging.info("日期：{} 打卡成功".format(date_element.text))
+        if need_mail:
+            send_email(smtp_server, sender_email, sender_password, receiver_email, '打卡成功',
+                     '日期：{} 打卡成功'.format(date_element.text), '最新打卡详情截图.png')
     else:
         logging.info("日期：{} 打卡失败，请手动打卡".format(time.strftime("%Y-%m-%d %H:%M:%S")))
+        if need_mail:
+            send_email(smtp_server, sender_email, sender_password, receiver_email, '打卡失败',
+                     '日期：{} 打卡失败，请手动打卡'.format(time.strftime("%Y-%m-%d")), '最新打卡详情截图.png')
 
     time.sleep(10)
+
+
+if __name__ == "__main__":
+    # 测试
+    if not os.path.exists('../myProfile.json'):
+        with open('../profile.json', 'r') as f:
+            profileConfig = json.load(f)
+    else:
+        with open('../myProfile.json', 'r') as f:
+            profileConfig = json.load(f)
+    # 从配置文件中获取参数
+    netid = profileConfig['netid']
+    password = profileConfig['password']
+    main(netid, password)
 

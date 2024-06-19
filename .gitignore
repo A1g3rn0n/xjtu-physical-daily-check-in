@@ -1,3 +1,8 @@
 *.json
 *.log
 .gitignore
+test
+*.png
+
+!profile.json
+!mail.json

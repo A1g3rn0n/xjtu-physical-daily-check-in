@@ -17,7 +17,23 @@
         "target_time": "07:00"
     }
     ```
-4. 运行`daily.py` 
+4. 如果需要启用邮件通知服务，请在`commom/mail.json`中填写你的邮箱信息.
+    - need_mail: 是否启用邮件通知 `true` or `false`
+    - smtp_server: 邮箱SMTP服务器
+    - sender_email: 发送邮件的邮箱
+    - sender_password: 发送邮件的邮箱授权码，请在邮箱设置中开启SMTP服务获取
+    - receiver_email: 接收邮件的邮箱
+    ```json
+    {
+        "need_mail": true,
+        "smtp_server": "smtp.example.com",
+        "sender_email": "your_email@example.com",
+        "sender_password": "Your STMP auth code",
+        "receiver_email": "Receiver email"
+    }
+    ```
+   
+5. 运行`daily.py`，默认是无浏览器窗口模式
    ```shell
     python daily.py
    ```
@@ -26,10 +42,12 @@
 ```
 │  daily.py # 调用simulate_with_chromedriver.py模拟打卡，每日定时执行
 │  physic_log.log # 日志文件
-│  profile.json # 配置文件
+│  profile.json # 个人信息配置文件
 │  README.md 
 └─common 
-      simulate_with_chromedriver.py # 模拟打卡流程
+   │  mail.json # 邮件配置文件
+   │  mail.py # 邮件通知
+   └─ simulate_with_chromedriver.py # 模拟打卡
 ```
 
 ### todo
@@ -39,7 +57,8 @@
 - [ ] 自主锻炼未开放时间段 执行打卡任务会异常退出
 
 - 优化
-- [ ] 支持Linux 无窗口模式
+- [x] 无窗口模式
+- [ ] 其他系统支持
 - [ ] 有效范围内随机经纬度
 - [ ] 随机打卡时间
-- [ ] 邮件通知
+- [x] 邮件通知

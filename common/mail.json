@@ -1,0 +1,7 @@
+{
+  "need_mail": false,
+  "smtp_server": "smtp.example.com",
+  "sender_email": "your_email@example.com",
+  "sender_password": "Your STMP auth code",
+  "receiver_email": "Receiver email"
+}

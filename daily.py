@@ -1,6 +1,7 @@
 import logging
 import schedule
 import time
+import os
 from common.simulate_with_chromedriver import main
 import json
 # import argparse
@@ -15,9 +16,12 @@ import json
 # print(args.argument)
 
 # 读取配置文件
-with open('profile.json', 'r') as f:
-    config = json.load(f)
-
+if not os.path.exists('myProfile.json'):
+    with open('profile.json', 'r') as f:
+        config = json.load(f)
+else:
+    with open('myProfile.json', 'r') as f:
+        config = json.load(f)
 # 从配置文件中获取参数
 netid = config['netid']
 password = config['password']
