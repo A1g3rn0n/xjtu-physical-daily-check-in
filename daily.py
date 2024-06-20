@@ -29,8 +29,11 @@ latitude = config['latitude']
 longitude = config['longitude']
 
 
+# 获取当前脚本所在的目录
+current_dir = os.path.dirname(os.path.abspath(__file__))
+log_file_path = os.path.join(current_dir, 'physic_log.log')
 # 设置日志记录
-logging.basicConfig(filename='physic_log.log', level=logging.INFO,
+logging.basicConfig(filename=log_file_path, level=logging.INFO,
                     format='%(asctime)s - %(levelname)s - %(message)s')
 
 

@@ -5,6 +5,23 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.base import MIMEBase
 from email import encoders
 import logging
+import os
+
+
+# 全局变量来跟踪日志是否已初始化
+log_initialized = False
+
+
+def init_log():
+    global log_initialized
+    if not log_initialized:
+        # 获取当前脚本所在的目录
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+        log_file_path = os.path.join(current_dir, '../physic_log.log')
+        # 设置日志记录格式
+        logging.basicConfig(filename=log_file_path, level=logging.INFO,
+                            format='%(asctime)s - %(levelname)s - %(message)s')
+        log_initialized = True
 
 
 def log_message(message):
@@ -22,6 +39,7 @@ def send_email(smtp_server, sender_email, sender_password, receiver_email, subje
     :param content:
     :return:
     """
+    init_log()
 
     # 创建一个SMTP客户端
     client = smtplib.SMTP(smtp_server)
