@@ -44,7 +44,10 @@ def log_message(message):
 def run_task_once():
     # 记录任务执行时间
     log_message("Task is starting.")
-    main(netid, password, latitude, longitude)
+    try:
+        main(netid, password, latitude, longitude)
+    except Exception as e:
+        log_message(str(e))
     log_message("Task completed.")
 
 
@@ -55,6 +58,8 @@ if __name__ == "__main__":
 
     # 安排任务并启动调度器
     schedule.every().day.at(target_time).do(run_task_once)
+    # debug use every 10 minutes
+    # schedule.every(10).minutes.do(run_task_once)
 
     while True:
         schedule.run_pending()
